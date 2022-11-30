@@ -1,8 +1,22 @@
-#ifndef CAFFEINE_CLI_H
-#define CAFFEINE_CLI_H
+#ifndef CLI_H
+#define CLI_H
 
-#include <string.h>
+#include "common.h"
 
-int cli_args(char **argv);
+#define USAGE 1
+#define COMPILE 2
+#define VERSION 3
+#define BAD_OPTION -1
 
-#endif
+typedef struct {
+  char *key;
+  int value;
+} t_symstruct;
+
+#define NKEYS (sizeof(lookup_table) / sizeof(t_symstruct))
+
+int handle_args(char **argv);
+void print_help(void);
+void print_version(void);
+int key_from_string(char *key);
+#endif /* CLI_H */

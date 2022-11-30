@@ -1,43 +1,71 @@
-#include "cli.h"
-#include "lexer.h"
-#include "utils.h"
-
 #include <stdio.h>
+#include <string.h>
+#include "cli.h"
+#include "version.h"
 
-FILE *output;
+static const char *usage =
+  "------------------------------------------\n"
+  "| caffeine <command> [options]           |\n"
+  "|                                        |\n"
+  "| Options:                               |\n"
+  "|                                        |\n"
+  "|   -h, --help     Output this message   |\n"
+  "|   -v, --version  Output version number |\n"
+  "|                                        |\n"
+  "| Commands:                              |\n"
+  "|                                        |\n"
+  "|   c, compile [file...]                 |\n"
+  "------------------------------------------";
 
-static const char *usage = 
-    "\n"
-    "Caffeine Programming Language!"
-    "\n"
-    "[OPTIONS]:"
-    "-h | --help [Display usage screen]"
-    "-c | --compile <file1 file2 etc.> [Compile files in parameter]"
-    "\n"
-    "";
+t_symstruct lookup_table[] = {
+  { "h",         USAGE },
+  { "-h",        USAGE },
+  { "help",      USAGE },
+  { "--help",    USAGE },
+  { "v",         VERSION },
+  { "-v",        VERSION },
+  { "version",   VERSION },
+  { "--version", VERSION },
+  { "c",         COMPILE },
+  { "compile",   COMPILE },
+  { NULL, -1 }
+};
 
-int cli_args(char **argv) {
-    /* Help/usage display */
-    if (NULL == argv[1] || 0 == strncmp(argv[1], "-h", 2) || 0 == strncmp(argv[1], "--help", 6)) {
-        printf("%s", usage);
-        return 0;
+void print_help(void) {
+  printf("%s", usage);
+}
+
+void print_version(void) {
+  printf("%s", version);
+}
+
+int key_from_string(char *key) {
+  long unsigned int i;
+  for (i = 0; i < NKEYS; i++) {
+    t_symstruct *sym = &lookup_table[i];
+    if (strcmp(sym->key, key) == 0)
+      return sym->value;
+  }
+  return BAD_OPTION;
+}
+
+/* TODO: Fix SIGSEGV on incorrect args (*should goto default) */
+int handle_args(char **argv) {
+  if (argv[1]) {
+    switch (key_from_string(argv[1])) {
+    case USAGE:
+      print_help();
+      return 0;
+    case VERSION:
+      print_version();
+      return 0;
+    default: 
+      printf("Invalid arguments! Showing usage.\n");
+      print_help();
+      return 1;  
     }
-
-    /* Go to lexer to get compiled, YAY! */
-    if (0 == strncmp(argv[1], "-c", 2) || 0 == strncmp(argv[1], "--compile", 9)) {
-        /* [TODO: implement for loop that grabs argc and auto fills argv[i]] */
-        output = fopen("test.c", "w");
-        /* debug_printf(("Output file created: %s\n", output)); */
-        lexer_init(argv[2], 256);
-    }
-
-    /* Error handler */
-    /* if (0 == strncmp(argv[1], "-", 1)) {
-      fprintf(stderr, "Unknown option: \"%s\"\n", argv[1]);
-      return 1;
-     }*/
-
-    /* How'd you get here lmao? */
-    printf("[DEBUG] How'd you get here lmao\n");
+  } else {
+    print_help();
     return 0;
+  }
 }
